@@ -33,15 +33,29 @@
     [self pushViewController:(self.mainView = [[DOMainViewController alloc] init]) animated:NO];
     [self setDelegate:self];
     [self setOverrideUserInterfaceStyle:UIUserInterfaceStyleDark];
+    
+    // 自定义背景变化时，主界面与所有二级界面（共用一个 backgroundImageView）同步刷新
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(customBackgroundDidChange) name:DOCustomBackgroundDidChangeNotification object:nil];
+
+}
+
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)customBackgroundDidChange
+{
+    self.backgroundImageView.image = [[DOThemeManager sharedInstance] backgroundImage];
 }
 
 - (void)setupBackground
 {
-    DOTheme *theme = [[DOThemeManager sharedInstance] enabledTheme];
     
     self.view.backgroundColor = [UIColor blackColor];
     self.backgroundImageView = [[UIImageView alloc] init];
-    self.backgroundImageView.image = [theme image];
+    self.backgroundImageView.image = [[DOThemeManager sharedInstance] backgroundImage];
     self.backgroundImageView.contentMode = UIViewContentModeScaleAspectFill;
     self.backgroundImageView.translatesAutoresizingMaskIntoConstraints = NO;
     self.backgroundImageView.userInteractionEnabled = NO;
