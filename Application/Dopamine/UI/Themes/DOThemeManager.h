@@ -10,6 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSNotificationName const DOCustomBackgroundDidChangeNotification;
+
 @interface DOThemeManager : NSObject
 
 @property (nonatomic, retain) NSArray<DOTheme*> *themes;
