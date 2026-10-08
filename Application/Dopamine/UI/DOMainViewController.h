@@ -6,6 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <PhotosUI/PhotosUI.h>
 #import "DOActionMenuDelegate.h"
 #import "DOHeaderView.h"
 #import "DOGlobalAppearance.h"
