@@ -119,3 +119,10 @@
 "Status_Title_Select_Package_Managers" = "Select Package Manager(s)";
 "Select_Package_Managers_Install_Message" = "If you are unsure which one to select, select Sileo";
 "Continue" = "Continue";
+
+// Custom Background (long press)
+"Custom_Background_Title" = "Custom Background";
+"Custom_Background_Set" = "Set Background Image";
+"Custom_Background_Change" = "Change Background Image";
+"Custom_Background_Remove" = "Restore Default Background";
+"Custom_Background_Applied" = "Background applied";
