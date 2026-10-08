@@ -8,6 +8,8 @@
 #import "DOThemeManager.h"
 #import "DOPreferenceManager.h"
 
+NSNotificationName const DOCustomBackgroundDidChangeNotification = @"DOCustomBackgroundDidChangeNotification";
+
 @implementation DOThemeManager
 
 + (instancetype)sharedInstance
@@ -85,5 +87,58 @@
     return [UIColor colorWithRed:red green:green blue:blue alpha:currentAlpha * alpha];
 }
 
+#pragma mark - Custom Background
+
+- (NSString*)customBackgroundPath
+{
+    return [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/customBackground.jpg"];
+}
+
+- (BOOL)hasCustomBackground
+{
+    return [[NSFileManager defaultManager] fileExistsAtPath:[self customBackgroundPath]];
+}
+
+- (UIImage*)customBackgroundImage
+{
+    if (![self hasCustomBackground])
+        return nil;
+    return [UIImage imageWithContentsOfFile:[self customBackgroundPath]];
+}
+
+- (UIImage*)backgroundImage
+{
+    UIImage *custom = [self customBackgroundImage];
+    if (custom)
+        return custom;
+    return [[self enabledTheme] image];
+}
+
+- (void)saveCustomBackgroundImage:(UIImage*)image
+{
+    if (!image)
+        return;
+
+    NSData *data = UIImageJPEGRepresentation(image, 0.85);
+    if (!data)
+        return;
+
+    NSError *error;
+    if (![data writeToFile:[self customBackgroundPath] options:NSDataWritingAtomic error:&error])
+        return;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:DOCustomBackgroundDidChangeNotification object:nil];
+    });
+}
+
+- (void)removeCustomBackgroundImage
+{
+    [[NSFileManager defaultManager] removeItemAtPath:[self customBackgroundPath] error:nil];
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:DOCustomBackgroundDidChangeNotification object:nil];
+    });
+}
 
 @end
