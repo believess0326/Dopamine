@@ -10,6 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSNotificationName const DOCustomBackgroundDidChangeNotification;
+
 @interface DOThemeManager : NSObject
 
 @property (nonatomic, retain) NSArray<DOTheme*> *themes;
@@ -21,6 +23,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray*)getAvailableThemeNames;
 - (DOTheme*)getThemeForKey:(NSString*)key;
 - (DOTheme*)enabledTheme;
+
+
+#pragma mark - Custom Background
+
+// 当前生效的背景图：优先返回用户自定义背景，未设置时回落到当前主题的背景
+- (UIImage*)backgroundImage;
+- (BOOL)hasCustomBackground;
+- (void)saveCustomBackgroundImage:(UIImage*)image;
+- (void)removeCustomBackgroundImage;
 
 @end
 
