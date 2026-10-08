@@ -6,7 +6,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <PhotosUI/PhotosUI.h>
 #import "UIImage+Blur.h"
 #import "DOMainViewController.h"
 #import "Transition/DOModalTransitionScale.h"
@@ -14,7 +13,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface DOMainViewController : UIViewController <DOActionMenuDelegate, PHPickerViewControllerDelegate>
+@interface DONavigationController : UINavigationController <UINavigationControllerDelegate>
 
 @end
 
