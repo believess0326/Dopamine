@@ -101,3 +101,9 @@
 "Input_Mount_Title" = "输入原始路径";
 "When spinlock fix is ​​enabled, app extensions of blacklisted apps will be disabled and may also cause spinlock panics when the blacklisted app is in foreground/background.\n\nYou can first try disabling tweak injection for the app in Choicy (spinlock fix still works), and only blacklist the app if that doesn't work." = "启用 spinlock 修复后，黑名单应用的应用扩展将被禁用，并且当黑名单应用处于 前台/后台 时，还可能导致 spinlock 崩溃。\n\n你可以先尝试在 Choicy 中为该应用禁用 tweak 注入（spinlock 修复仍然有效），如果无效，再将该应用加入黑名单。";
 "Duplicate_Apps_Error_User_App" = "检测到标识符为 \"%@\" 的 App 存在 Dopamine 的 App 目录中 (\"%@\") ，但其已被单独安装在系统上，无法继续。";
+// Custom Background (long press)
+"Custom_Background_Title" = "自定义背景";
+"Custom_Background_Set" = "选择背景图片";
+"Custom_Background_Change" = "更换背景图片";
+"Custom_Background_Remove" = "恢复默认背景";
+"Custom_Background_Applied" = "背景已应用";
