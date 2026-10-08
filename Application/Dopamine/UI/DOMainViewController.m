@@ -13,6 +13,7 @@
 #import "DOActionMenuButton.h"
 #import "DOUpdateViewController.h"
 #import "DOLogCrashViewController.h"
+#import "DOThemeManager.h"
 #import <pthread.h>
 #import <libjailbreak/libjailbreak.h>
 
@@ -21,6 +22,8 @@
 @property DOJailbreakButton *jailbreakBtn;
 @property NSArray<NSLayoutConstraint *> *jailbreakButtonConstraints;
 @property DOActionMenuButton *updateButton;
+@property DOHeaderView *headerView;
+@property DOActionMenuView *actionView;
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
 
@@ -31,6 +34,132 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self setupStack];
+    [self setupBackgroundGesture];
+}
+
+
+- (void)setupBackgroundGesture
+{
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleBackgroundLongPress:)];
+    longPress.minimumPressDuration = 0.5;
+    [self.view addGestureRecognizer:longPress];
+}
+
+- (void)handleBackgroundLongPress:(UILongPressGestureRecognizer *)gesture
+{
+    if (gesture.state != UIGestureRecognizerStateBegan)
+        return;
+
+    // 只响应“空白处”长按：命中点落在任何可交互控件/内容区域时忽略
+    CGPoint location = [gesture locationInView:self.view];
+    UIView *hitView = [self.view hitTest:location withEvent:nil];
+    for (UIView *interactiveView = hitView; interactiveView && interactiveView != self.view; interactiveView = interactiveView.superview) {
+        if (interactiveView == self.jailbreakBtn ||
+            interactiveView == self.updateButton ||
+            interactiveView == self.actionView ||
+            interactiveView == self.headerView) {
+            return;
+        }
+    }
+
+    BOOL hasCustom = [[DOThemeManager sharedInstance] hasCustomBackground];
+
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Custom_Background_Title")
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+
+    UIAlertAction *pickAction = [UIAlertAction actionWithTitle:hasCustom ? DOLocalizedString(@"Custom_Background_Change") : DOLocalizedString(@"Custom_Background_Set")
+                                                         style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * _Nonnull action) {
+        [self presentCustomBackgroundPicker];
+    }];
+    [alert addAction:pickAction];
+
+    if (hasCustom) {
+        UIAlertAction *removeAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Custom_Background_Remove")
+                                                              style:UIAlertActionStyleDestructive
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            [[DOThemeManager sharedInstance] removeCustomBackgroundImage];
+        }];
+        [alert addAction:removeAction];
+    }
+
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close")
+                                                          style:UIAlertActionStyleCancel
+                                                        handler:nil];
+    [alert addAction:cancelAction];
+
+    // iPad 上 Action Sheet 需要 popover 锚点
+    if (alert.popoverPresentationController) {
+        alert.popoverPresentationController.sourceView = self.view;
+        alert.popoverPresentationController.sourceRect = CGRectMake(location.x, location.y, 1, 1);
+    }
+
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)presentCustomBackgroundPicker
+{
+    PHPickerConfiguration *config = [[PHPickerConfiguration alloc] init];
+    config.filter = [PHPickerFilter imagesFilter];
+    config.selectionLimit = 1;
+
+    PHPickerViewController *picker = [[PHPickerViewController alloc] initWithConfiguration:config];
+    picker.delegate = self;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark - PHPickerViewControllerDelegate
+
+- (void)picker:(PHPickerViewController *)picker didFinishPicking:(NSArray<PHPickerResult *> *)results
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+
+    NSItemProvider *itemProvider = results.firstObject.itemProvider;
+    if (![itemProvider canLoadObjectOfClass:[UIImage class]])
+        return;
+
+    __weak typeof(self) weakSelf = self;
+    [itemProvider loadObjectOfClass:[UIImage class] completionHandler:^(id<NSItemProviderReading>  _Nullable object, NSError * _Nullable error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!error && [object isKindOfClass:[UIImage class]]) {
+                [[DOThemeManager sharedInstance] saveCustomBackgroundImage:(UIImage *)object];
+                [weakSelf showBackgroundAppliedToast];
+            }
+        });
+    }];
+}
+
+- (void)showBackgroundAppliedToast
+{
+    UILabel *toast = [[UILabel alloc] init];
+    toast.text = DOLocalizedString(@"Custom_Background_Applied");
+    toast.textColor = [UIColor whiteColor];
+    toast.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+    toast.textAlignment = NSTextAlignmentCenter;
+    toast.backgroundColor = [UIColor colorWithWhite:0 alpha:0.55];
+    toast.layer.cornerRadius = 14;
+    toast.layer.masksToBounds = YES;
+    toast.translatesAutoresizingMaskIntoConstraints = NO;
+    toast.alpha = 0;
+
+    [self.view addSubview:toast];
+    [NSLayoutConstraint activateConstraints:@[
+        [toast.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [toast.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-80],
+        [toast.widthAnchor constraintGreaterThanOrEqualToConstant:160],
+        [toast.heightAnchor constraintEqualToConstant:36],
+    ]];
+
+    [UIView animateWithDuration:0.25 animations:^{
+        toast.alpha = 1;
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:0.3 delay:1.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            toast.alpha = 0;
+        } completion:^(BOOL finished) {
+            [toast removeFromSuperview];
+        }];
+    }];
 }
 
 -(void)setupStack
@@ -82,6 +211,7 @@
     ]];
     
     [stackView addArrangedSubview:headerView];
+    self.headerView = headerView;
 
     [NSLayoutConstraint activateConstraints:@[
         [headerView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor constant:5],
@@ -109,6 +239,7 @@
     ] delegate:self];
     
     [stackView addArrangedSubview: actionView];
+    self.actionView = actionView;
 
     [NSLayoutConstraint activateConstraints:@[
         [actionView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor],
