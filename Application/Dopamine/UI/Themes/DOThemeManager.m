@@ -87,6 +87,16 @@ NSNotificationName const DOCustomBackgroundDidChangeNotification = @"DOCustomBac
     return [UIColor colorWithRed:red green:green blue:blue alpha:currentAlpha * alpha];
 }
 
++ (UIColor*)effectiveMenuColor
+{
+    // 使用自定义背景图时，菜单/按钮不画灰色底，直接透出背景图
+    if ([[DOThemeManager sharedInstance] hasCustomBackground]) {
+        return [UIColor clearColor];
+    }
+    // 未设置自定义背景（主题默认背景）时，保留原来的灰色圆角底
+    return [DOThemeManager menuColorWithAlpha:1.0];
+}
+
 
 #pragma mark - Custom Background
 
