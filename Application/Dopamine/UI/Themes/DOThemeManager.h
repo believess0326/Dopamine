@@ -19,6 +19,12 @@ extern NSNotificationName const DOCustomBackgroundDidChangeNotification;
 + (instancetype)sharedInstance;
 
 + (UIColor*)menuColorWithAlpha:(float)alpha;
+
+// 主界面菜单/按钮实际使用的背景色：
+// 有自定义背景图时返回透明，让自定义背景透出来；
+// 无自定义背景（使用主题默认背景）时返回主题菜单色（带灰色圆角框）。
++ (UIColor*)effectiveMenuColor;
+
 - (NSArray*)getAvailableThemeKeys;
 - (NSArray*)getAvailableThemeNames;
 - (DOTheme*)getThemeForKey:(NSString*)key;
