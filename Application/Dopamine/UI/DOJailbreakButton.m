@@ -17,11 +17,17 @@
 {
     if (self = [super init])
     {
-        self.backgroundColor = [DOThemeManager menuColorWithAlpha:1.0];
+self.backgroundColor = [DOThemeManager effectiveMenuColor];
         self.layer.cornerRadius = 14;
         self.layer.masksToBounds = YES;
         self.layer.cornerCurve = kCACornerCurveContinuous;
         self.translatesAutoresizingMaskIntoConstraints = NO;
+
+// 自定义背景设置/删除后，实时切换按钮底色（透明 <-> 主题灰）
+[[NSNotificationCenter defaultCenter] addObserver:self
+                                         selector:@selector(customBackgroundDidChange)
+                                             name:DOCustomBackgroundDidChangeNotification
+                                           object:nil];
 
         self.button = [DOActionMenuButton buttonWithAction:actions chevron:NO];
         [self.button setContentHorizontalAlignment:UIControlContentHorizontalAlignmentCenter];
@@ -187,6 +193,18 @@
 - (BOOL)isEnabled
 {
     return self.button.userInteractionEnabled;
+}
+
+- (void)customBackgroundDidChange
+{
+    [UIView animateWithDuration:0.25 animations:^{
+        self.backgroundColor = [DOThemeManager effectiveMenuColor];
+    }];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Mutex
